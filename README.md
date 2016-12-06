@@ -41,7 +41,7 @@ find ./ -name \*.zip -exec unzip {} \;
 find ./ -name \*.zip -delete
 ```
 
-### Option #1 - Important DEM into PostgreSQL
+### Important DEM into PostgreSQL
 
 Loading all shapefiles into a postgres server
 ```
@@ -92,18 +92,17 @@ find ./ -name \*.zip -exec unzip {} \;
 find ./ -name \*.zip -delete
 ```
 
-### Option #1 - Importing DEM into PostgreSQL
+### Importing DEM into PostgreSQL
 
-We first build a virtual combination of all the downloaded geotiffs. This will help merge polygons across the edges of individual geotiffs.
+We first build a virtual combination of all the downloaded GeoTIFFs. This will help merge polygons across the edges of individual GeoTIFFs.
 
 ```
-#data vrt
 gdalbuildvrt srtm_cgiar.vrt srtm_38_01/srtm_38_01.tif srtm_38_02/srtm_38_02.tif srtm_38_03/srtm_38_03.tif srtm_39_01/srtm_39_01.tif srtm_39_02/srtm_39_02.tif srtm_39_03/srtm_39_03.tif
 ```
 
-Converting geotiffs to shapefile (10m resolution). Depending on the size of the data set, the next steps might take a while.
+Converting GeoTIFFs to shapefile (10m resolution). Depending on the size of the data set, the next steps might take a while.
 ```
-#For Polygons
+#For Polygons to shapefiles (this will not work for large areas, as there is a limitation to shapefile size)
 gdal_polygonize.py srtm_cgiar.vrt -f "ESRI Shapefile" srtm_cgiar.shp
 
 gdal_polygonize.py srtm_cgiar.vrt -f "PostgreSQL" PG:"host=localhost dbname=sebastianmeier user=sebastianmeier port=5432" dem elev
