@@ -53,14 +53,17 @@ Modify the SQL structure
 ```
 #Change the geom column from LineString to Geometry to accept Polygons and LineStrings
 ALTER TABLE dem ALTER COLUMN wkb_geometry TYPE geometry(Geometry,4326)
+
 #Where possible convert linestrings to polygons
 UPDATE dem_shp SET wkb_geometry = ST_MakePolygon(wkb_geometry) WHERE ST_StartPoint(wkb_geometry) = ST_EndPoint(wkb_geometry)
-
-TODO:Remove offset at the edges of the tiles 
 
 #To speed things up we add another index for the elevation
 CREATE INDEX dem_elevation_idx ON dem USING btree (elevation);
 ```
+
+![Problem with OpenDEM LineStrings](https://raw.githubusercontent.com/sebastian-meier/dem-playground/master/readme_thumbnails/linestring_problem.jpg)
+TODO:Remove offset at the edges of the tiles 
+
 
 ## Polygons from GeoTIFFs (from CGIAR)
 
