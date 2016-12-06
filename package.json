@@ -1,0 +1,41 @@
+{
+  "name": "dem-playground",
+  "version": "1.0.0",
+  "description": "Downloading, Processing and Visualizing DEM data",
+  "main": "export.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sebastian-meier/dem-playground.git"
+  },
+  "keywords": [
+    "spatial",
+    "data",
+    "dem",
+    "srtm",
+    "postgis",
+    "gdal"
+  ],
+  "author": "Sebastian Meier",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/sebastian-meier/dem-playground/issues"
+  },
+  "homepage": "https://github.com/sebastian-meier/dem-playground#readme",
+  "dependencies": {
+    "d3": "^4.4.0",
+    "fs": "0.0.2",
+    "jsdom": "^9.8.3",
+    "pg-native": "^1.10.0",
+    "slug": "^0.9.1",
+    "topojson": "^2.0.0",
+    "topojson-client": "^2.1.0",
+    "topojson-simplify": "^2.0.0",
+    "turf": "^3.0.14"
+  }
+}

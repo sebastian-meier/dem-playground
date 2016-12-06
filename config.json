@@ -1,0 +1,14 @@
+{
+	"db" : {
+		"database":"sebastianmeier",
+		"user":"sebastianmeier",
+		"password":"",
+		"port":5432,
+		"host":"localhost",
+		"ssl":false,
+		"table":"dem_shp",
+		"table_type":"linestring",
+		"geom_column":"wkb_geometry",
+		"elevation_column":"elevation"
+	}
+}
