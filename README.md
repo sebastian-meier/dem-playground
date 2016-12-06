@@ -5,31 +5,34 @@ Before choosing a path to go, you should decide which type of DEM/SRTM data you 
 
 ![OpenDEM & CGIAR](https://raw.githubusercontent.com/sebastian-meier/dem-playground/master/readme_thumbnails/sources.jpg)
 
-## LineStrings
+## LineStrings from OpenDEM
 
 ### Downloading the data
 
-The OpenDEM project is collecting and providing elevation data under an open license. (Most of the data is provided by the USGS.)
-You can use the web-interface to download the DEM data as shapefiles: http://www.opendem.info/download_contours.html 
+The [OpenDEM](http://www.opendem.info/) project is collecting and providing elevation data under an open license. (Most of the data is provided by the USGS.)
+You can use the web-interface to [download](http://www.opendem.info/download_contours.html) the DEM data as shapefiles. 
 
-Instead of downloading a bunch of zip files manually simply use this command to download a list of files stored in a text file
+Instead of downloading a bunch of zip files manually, you can also use this command to download a list of files stored in a text file
 
 ```
 wget -i /PATH_TO/Files.txt
 ```
 
-Files.txt (Example for the area of the Netherlands)
+Files.txt (Example for the area of Germany)
 ```
-http://opendemdata.info/data/srtm_contour/N51E003.zip
-http://opendemdata.info/data/srtm_contour/N51E004.zip
-http://opendemdata.info/data/srtm_contour/N51E005.zip
-http://opendemdata.info/data/srtm_contour/N51E006.zip
-http://opendemdata.info/data/srtm_contour/N52E004.zip
-http://opendemdata.info/data/srtm_contour/N52E005.zip
-http://opendemdata.info/data/srtm_contour/N52E006.zip
-http://opendemdata.info/data/srtm_contour/N53E004.zip
-http://opendemdata.info/data/srtm_contour/N53E005.zip
-http://opendemdata.info/data/srtm_contour/N53E006.zip
+http://opendemdata.info/data/srtm_contour/N46E005.zip
+http://opendemdata.info/data/srtm_contour/N46E006.zip
+http://opendemdata.info/data/srtm_contour/N46E007.zip
+http://opendemdata.info/data/srtm_contour/N46E008.zip
+http://opendemdata.info/data/srtm_contour/N46E009.zip
+http://opendemdata.info/data/srtm_contour/N46E010.zip
+http://opendemdata.info/data/srtm_contour/N46E011.zip
+http://opendemdata.info/data/srtm_contour/N46E012.zip
+http://opendemdata.info/data/srtm_contour/N46E013.zip
+http://opendemdata.info/data/srtm_contour/N46E014.zip
+http://opendemdata.info/data/srtm_contour/N46E015.zip
+...
+http://opendemdata.info/data/srtm_contour/N55E015.zip
 ```
 
 After downloading all files, use this command to unzip all and delete the zip files afterwards
