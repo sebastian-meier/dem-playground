@@ -1,7 +1,7 @@
 # dem-playground
 ### Downloading, Processing and Visualization of Digital Elevation Model (DEM) Data
 
-Before choosing a path to go, you should decide which type of DEM/SRTM data you need. Digital Elevation Models can be provided in two flavours, Polygons and LineStrings. You might be wondering why you need to decide, but its simply a problem of available data. OpenDEM offers LineStrings in a very good resolution, some of those LineStrings can easily be converted into Polygons, but I ran into a lot of problems when trying to merge LineStrings across tile edges. So if you want Polygons you should rather use the USGS/NASA DEM data, which is provided in form of GeoTIFFs, which can easily be polygonized. (If somebody knows an easy way of polygonizing the LineStrings from OpenDEM, please let me know, i have already spend days on figuring this out.)
+Before choosing a path to go, you should decide which type of DEM/SRTM data you need. Digital Elevation Models can be provided in two flavours, Polygons and LineStrings. You might be wondering why you need to decide, but its simply a problem of available data. [OpenDEM](http://www.opendem.info/) offers LineStrings in a very good resolution, some of those LineStrings can easily be converted into Polygons, but I ran into a lot of problems when trying to merge LineStrings across tile edges. If you want Polygons you should rather use the USGS/NASA DEM data from the [CGIAR](http://srtm.csi.cgiar.org/) project , which is provided in form of GeoTIFFs, which can easily be polygonized. (If somebody knows an easy way of polygonizing the LineStrings from OpenDEM, please let me know, i have already spend days on figuring this out.)
 
 ## LineStrings
 
@@ -50,7 +50,7 @@ ALTER TABLE dem ALTER COLUMN wkb_geometry TYPE geometry(Geometry,4326)
 //Where possible convert linestrings to polygons for area calculations to remove small bits
 UPDATE dem_shp SET wkb_geometry = ST_MakePolygon(wkb_geometry) WHERE ST_StartPoint(wkb_geometry) = ST_EndPoint(wkb_geometry)
 
-
+TODO:Remove offset at the edges of the tiles 
 
 ALTER TABLE dem ADD COLUMN state integer DEFAULT 1
 ALTER TABLE dem ADD COLUMN start_point geometry(Point,4326)
