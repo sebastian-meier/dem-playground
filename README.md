@@ -3,6 +3,8 @@
 
 Before choosing a path to go, you should decide which type of DEM/SRTM data you need. Digital Elevation Models can be provided in two flavours, Polygons and LineStrings. You might be wondering why you need to decide, but its simply a problem of available data. [OpenDEM](http://www.opendem.info/) offers LineStrings in a very good resolution, some of those LineStrings can easily be converted into Polygons, but I ran into a lot of problems when trying to merge LineStrings across tile edges. If you want Polygons you should rather use the USGS/NASA DEM data from the [CGIAR](http://srtm.csi.cgiar.org/) project , which is provided in form of GeoTIFFs, which can easily be polygonized. (If somebody knows an easy way of polygonizing the LineStrings from OpenDEM, please let me know, i have already spend days on figuring this out.)
 
+![OpenDEM & CGIAR](https://raw.githubusercontent.com/sebastian-meier/dem-playground/master/readme_thumbnails/sources.jpg)
+
 ## LineStrings
 
 ### Downloading the data
