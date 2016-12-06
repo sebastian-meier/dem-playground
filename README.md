@@ -1,5 +1,5 @@
 # dem-playground
-Downloading, Processing and Visualization of Digital Elevation Model (DEM) Data
+### Downloading, Processing and Visualization of Digital Elevation Model (DEM) Data
 
 Before choosing a path to go, you should decide which type of DEM/SRTM data you need. Digital Elevation Models can be provided in two flavours, Polygons and LineStrings. You might be wondering why you need to decide, but its simply a problem of available data. OpenDEM offers LineStrings in a very good resolution, some of those LineStrings can easily be converted into Polygons, but I ran into a lot of problems when trying to merge LineStrings across tile edges. So if you want Polygons you should rather use the USGS/NASA DEM data, which is provided in form of GeoTIFFs, which can easily be polygonized. (If somebody knows an easy way of polygonizing the LineStrings from OpenDEM, please let me know, i have already spend days on figuring this out.)
 
