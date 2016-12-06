@@ -114,34 +114,22 @@ gdal_polygonize.py srtm_cgiar.vrt -f "PostgreSQL" PG:"host=localhost dbname=seba
 gdal_contour -a elev -i 10 srtm_cgiar.vrt srtm_cgiar.shp
 ```
 
-Now importing the shape file into Postgres 
+### Optimizing the data
+Using GDAL's polygonize function will result in a lot of small rectangles, due to a lot of different shades of grey in the GeoTiff resulting in a lot of different levels of elevation. Following is an approach that looks at the overall histogram of the elevation and then breaks it down into n-levels thereby creating only n-levels of elevation and dropping the rest of the information.
+```
+#converting the VRT to GeoTIFF (you can also use VRT but then the GeoTiffs have to be in the same folder than the VRT file)
+gdal_translate -stats srtm_cgiar.vrt srtm_cgiar.geotiff
+node split_geotiff.js PATH_TO/srtm_cgiar.geotiff INTERVAL_IN_METERS OUTPUT_NAME
+```
+
+If you did not import the data into PostgreSQL directly, now importing the shapefile into Postgres
 ```
 ogr2ogr -f "PostgreSQL" PG:"dbname=DATABASE_NAME" -nln TABLENAME srtm_cgiar.shp
 ```
 
-### Optimizing the data
-Using GDAL's polygonize function will result in a lot of small rectangles, only a few will be merged, most of them are disconnected, we will combine all those at same elevation using the ST_Union function, depending on the size of your data set, this will takes ages (really).
+To speed things up, add an index on the elevation:
 ```
-# Combining the 
-CREATE TABLE dem_optimized (
-    id integer NOT NULL,
-    geom geometry(Geometry,4326),
-    elevation integer
-);
-CREATE SEQUENCE dem_optimized_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER TABLE ONLY dem_optimized ALTER COLUMN id SET DEFAULT nextval('dem_optimized_id_seq'::regclass);
-ALTER TABLE ONLY dem_optimized
-    ADD CONSTRAINT dem_optimized_pkey PRIMARY KEY (id);
-
-CREATE INDEX dem_optimized_elevation ON dem_optimized (elevation)
-CREATE INDEX dem_optimized_geom ON dem_optimized USING gist (geom) 
-INSERT INTO dem_optimized (geom, elevation) SELECT ST_Union(ST_MakeValid(wkb_geometry)), elevation FROM dem GROUP BY elevation
-
+CREATE INDEX dem_elevation ON dem (elevation)
 ```
 
 ## References & Approach

@@ -30,7 +30,9 @@
   "dependencies": {
     "d3": "^4.4.0",
     "fs": "0.0.2",
+    "gdal": "^0.9.3",
     "jsdom": "^9.8.3",
+    "mapnik-omnivore": "^8.1.0",
     "pg-native": "^1.10.0",
     "slug": "^0.9.1",
     "topojson": "^2.0.0",
