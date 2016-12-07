@@ -23,7 +23,7 @@ omnivore.digest(filename, function(err, metadata){
     if (err) return callback(err);
     else {
         console.log('Metadata returned!');
-        console.log(metadata.raster.bands);
+        console.log(metadata.raster.bands[0]);
     }
 });
 
