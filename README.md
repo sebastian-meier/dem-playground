@@ -148,16 +148,22 @@ Bounding Box in Lng/Lat
 - ymin   : FLOAT
 - xmax   : FLOAT
 - ymax   : FLOAT
+
 SRID of the Bounding Box
 - srid   : INT(4)
+
 Maximum size in Pixels of the output svg/png
 - size   : INT
+
 Number of Isolines to output (will be reduced if less isolines are available), should ideally be dividable by layers
 - lines  : INT
+
 Number of layers (individual files) to generate
 - layers : INT
+
 Name of folder to export to
 - folder : STRING or FALSE
+
 Smoothing function for the isolines (one of d3.curveBasis, d3.curveLinear, d3.curveCardinal, d3.curveMonotoneX, d3.curveCatmullRom)
 - curve  : STRING
 
@@ -167,7 +173,7 @@ The script above will generate a geojson and topojson holding the data for all t
 
 ![Output animation](https://raw.githubusercontent.com/sebastian-meier/dem-playground/master/readme_thumbnails/dem_test.gif)
 
-## References & Approach
-Projects like openDEM provide SRTM data already in shapefile format, those data sets sadly only provide LINESTRINGS, which, even though i put in hours of work, i was not able to stitch back together into proper polygons. Even though the resolution would be a lot better.
-I then switched to vectorizing geotiffs, which proved to be a lot easer and faster. This site helped a lot: https://epsg4253.wordpress.com/2013/02/08/building-contour-elevation-lines-with-gdal-and-postgis/
-If anybody has a good source on how to polygonize srtm data from openDEM, please give me a heads up.
+## ToDos
+
+- Remove the offset errors in the OpenDEM data
+- Find a better way to smooth the polygonize output
