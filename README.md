@@ -118,8 +118,7 @@ gdal_contour -a elev -i 10 srtm_cgiar.vrt srtm_cgiar.shp
 Using GDAL's polygonize function will result in a lot of small rectangles, due to a lot of different shades of grey in the GeoTiff resulting in a lot of different levels of elevation. Following is an approach that looks at the overall histogram of the elevation and then breaks it down into n-levels thereby creating only n-levels of elevation and dropping the rest of the information.
 ```
 #converting the VRT to GeoTIFF (you can also use VRT but then the GeoTiffs have to be in the same folder than the VRT file)
-gdal_translate -stats srtm_cgiar.vrt srtm_cgiar.geotiff
-node split_geotiff.js PATH_TO/srtm_cgiar.geotiff INTERVAL_IN_METERS OUTPUT_NAME
+node split_geotiff.js PATH_TO/srtm_cgiar.vrt INTERVAL_IN_METERS OUTPUT_NAME
 ```
 
 If you did not import the data into PostgreSQL directly, now importing the shapefile into Postgres

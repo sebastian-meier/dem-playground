@@ -1,84 +1,104 @@
 var gdal = require('gdal'),
-	omnivore = require('mapnik-omnivore');
-//var util = require('util');
-
+	fs = require('fs'),
+	omnivore = require('mapnik-omnivore'),
+	exec = require('child_process').exec,
+	child;
 
 var filename = process.argv[2],
-	interval = process.argv[3],
-	output   = process.argv[4];
+	interval = parseFloat(process.argv[3]),
+	output   = process.argv[4],
+	path 	 = process.argv[1].substr(0, process.argv[1].lastIndexOf('/')),
+	computeInterval = process.argv[5];
 
 if (!filename || !interval || !output) {
-	
 	if(!filename){ console.error('Filename must be provided (first parameter)'); }
 	if(!interval){ console.error('Interval must be provided (second parameter)'); }
 	if(!output  ){ console.error('Output Path/Filename must be provided (third parameter)'); }
-
 	process.exit(1);
 }
 
-//var ds = gdal.open(filename, "r", "GTiff", undefined, undefined, 1);
-//console.log(ds.bands.DatasetBands.getStatistics());
+var tmp_path = 'temp',
+	tmp_geotiff = false;
 
-omnivore.digest(filename, function(err, metadata){
-    if (err) return callback(err);
-    else {
-        console.log('Metadata returned!');
-        console.log(metadata.raster.bands[0]);
-    }
-});
+//Check if temporary export directory exists
+try {
+	fs.statSync('./'+tmp_path);
+} catch (e) {
+	fs.mkdirSync('./'+tmp_path);
+}
 
+if(filename.indexOf('.vrt')>-1){
+	child = exec("gdal_translate -stats "+filename+" "+tmp_path+"/stats.geotiff", function (error, stdout, stderr) {
+		if (error !== null) {
+			console.log('exec error: ' + error);
+		}else{
+			tmp_geotiff = true;
+			filename = tmp_path+"/stats.geotiff";
+			init();
+		}
+	});
+}else{
+	init();
+}
 
+var min, max, low_bound, high_bound, step;
 
+function init(){
+	omnivore.digest(filename, function(err, metadata){
+		if (err) return callback(err);
+		else {
+			min = parseFloat(metadata.raster.bands[0].stats.min);
+			max = parseFloat(metadata.raster.bands[0].stats.max);
 
-/*
+			if(computeInterval && (computeInterval.toLower() == "true")){
+				interval = Math.floor((max - min)/interval);
+			}
 
-#getting maximum and minimum from the histogram of our GeoTiff
-gdal_translate -stats srtm_cgiar.vrt srtm_cgiar_stats.geotiff
-gdalinfo -mm srtm_cgiar_stats.geotiff
-min_elev = ...;
-max_elev = ...;
+			low_bound = interval*Math.floor(min/interval);
+			high_bound = interval*Math.ceil(max/interval);
 
-#interval of contour lines in meters
-interval = 100;
+			step = low_bound;
 
-low_bound = interval*round(min_elev/interval);
-high_bound = interval*round(max_elev/interval);
+			console.log("range:",low_bound,high_bound,step);
 
-%% Start loop to create levels for all elevation intervals
-for i = low_bound:interval:high_bound
+			initProcessBounds();
+		}
+	});
+}
 
-	
-	% Raster slicing elevation levels
-	cmd = ['!gdal_calc.py -A ',dem_name,' --outfile=level',num2str(i),'.tif --calc="',num2str(i),'*(A>',num2str(i),')" --NoDataValue=0'];
-	eval(cmd);
-	clear cmd
-	
-	% Polygonize raster slices
-	cmd = ['!gdal_polygonize.py level',num2str(i),'.tif -f "ESRI Shapefile" level',num2str(i),'.shp level_',num2str(i),' elev'];
-	eval(cmd);
-	clear cmd
- 
-end
+function initProcessBounds(){
+	child = exec("gdal_calc.py -A "+filename+" --outfile="+path+"/"+tmp_path+"/level"+step+".geotiff --calc=\""+step+"*(A>"+step+")\" --NoDataValue=0", function (error, stdout, stderr) {
+		if (error !== null) {
+			console.log('exec error: ' + error);
+		}else{
+			if(stdout) console.log('stdout: ' + stdout);
+			if(stderr) console.log('stderr: ' + stderr);
+			polygonizeBounds();
+		}
+	});
+}
 
-%% Merge all levels into one shapefile
+function polygonizeBounds(){
+	child = exec("gdal_polygonize.py "+path+"/"+tmp_path+"/level"+step+".geotiff -f \"ESRI Shapefile\" "+path+"/"+tmp_path+"/level"+step+".shp level_"+step+" elev", function (error, stdout, stderr) {
+		if (error !== null) {
+			console.log('exec error: ' + error);
+		}else{
+			if(stdout) console.log('stdout: ' + stdout);
+			if(stderr) console.log('stderr: ' + stderr);
 
-% Create levels.shp to append all other levels to
-cmd = ['!ogr2ogr levels.shp level',num2str(low_bound),'.shp'];
-eval(cmd);
-clear cmd
-
-% Append all other levels onto levels.shp
-for i = (low_bound+interval):interval:high_bound
-	
-	cmd = ['!ogr2ogr -update -append levels.shp level',num2str(i),'.shp'];
-	eval(cmd);
-	clear cmd
-	
-end
-
-%% Convert ESRI shapefile to GeoJSON
-
-cmd = ['!ogr2ogr -f GeoJSON ',output_prefix,'.json levels.shp'];
-eval(cmd);
-
-*/
+			step += interval;
+			if(step <= high_bound){
+				setTimeout(initProcessBounds(),1)
+			}else{
+				if(tmp_geotiff){
+					fs.unlinkSync('./'+tmp_path+"/stats.geotiff");
+				}
+				for(var i = low_bound; i<=high_bound; i+=interval){
+					fs.unlinkSync('./'+tmp_path+"/level"+i+".geotiff");
+				}
+				console.log('unlinking done. exit.')
+				process.exit();
+			}
+		}
+	});
+}

@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/sebastian-meier/dem-playground#readme",
   "dependencies": {
+    "child_process": "^1.0.2",
     "d3": "^4.4.0",
     "fs": "0.0.2",
     "gdal": "^0.9.3",
