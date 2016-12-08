@@ -119,6 +119,9 @@ Using GDAL's polygonize function will result in a lot of small rectangles, due t
 ```
 #converting the VRT to GeoTIFF (you can also use VRT but then the GeoTiffs have to be in the same folder than the VRT file, when you don't want to decide what interval to use, you can alternatively use the INTERVAL_IN_METERS parameter to define the number of layers you want, then simply set the COMPUTE_INTERVALS_OPTIONAL paramter to "true")
 node split_geotiff.js PATH_TO/srtm_cgiar.vrt INTERVAL_IN_METERS OUTPUT_NAME COMPUTE_INTERVALS_OPTIONAL
+
+#Example
+node split_geotiff.js /Users/sebastianmeier/Downloads/DEM_tif/srtm_cgiar_stats.geotiff 100 split_srtm_cgiar
 ```
 
 If you did not import the data into PostgreSQL directly, now importing the shapefile into Postgres.
@@ -140,6 +143,9 @@ If your have created a database containing isolines, using one of the methods ab
 You just need to edit the config.json file and add your database credentials and then call the export script.
 ```
 export.js PARAMETERS
+
+#Example
+node export.js 12.855709 52.270765 13.870163 52.783299 4326 2000 8 4
 ```
 Use parameters in this sequence:
 
@@ -166,6 +172,7 @@ Name of folder to export to
 
 Smoothing function for the isolines (one of d3.curveBasis, d3.curveLinear, d3.curveCardinal, d3.curveMonotoneX, d3.curveCatmullRom)
 - curve  : STRING
+
 
 ### Output
 
