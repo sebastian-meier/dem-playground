@@ -117,11 +117,12 @@ gdal_contour -a elev -i 10 srtm_cgiar.vrt srtm_cgiar.shp
 ### Optimizing the data
 Using GDAL's polygonize function will result in a lot of small rectangles, due to a lot of different shades of grey in the GeoTiff resulting in a lot of different levels of elevation. Following is an approach that looks at the overall histogram of the elevation and then breaks it down into n-levels thereby creating only n-levels of elevation and dropping the rest of the information.
 ```
-#converting the VRT to GeoTIFF (you can also use VRT but then the GeoTiffs have to be in the same folder than the VRT file)
-node split_geotiff.js PATH_TO/srtm_cgiar.vrt INTERVAL_IN_METERS OUTPUT_NAME
+#converting the VRT to GeoTIFF (you can also use VRT but then the GeoTiffs have to be in the same folder than the VRT file, when you don't want to decide what interval to use, you can alternatively use the INTERVAL_IN_METERS parameter to define the number of layers you want, then simply set the COMPUTE_INTERVALS_OPTIONAL paramter to "true")
+node split_geotiff.js PATH_TO/srtm_cgiar.vrt INTERVAL_IN_METERS OUTPUT_NAME COMPUTE_INTERVALS_OPTIONAL
 ```
 
-If you did not import the data into PostgreSQL directly, now importing the shapefile into Postgres
+If you did not import the data into PostgreSQL directly, now importing the shapefile into Postgres.
+If you have multiple files use the script from the LineString part to import multiple shp files at once.
 ```
 ogr2ogr -f "PostgreSQL" PG:"dbname=DATABASE_NAME" -nln TABLENAME srtm_cgiar.shp
 ```
@@ -130,6 +131,41 @@ To speed things up, add an index on the elevation:
 ```
 CREATE INDEX dem_elevation ON dem (elevation)
 ```
+
+## Visualization 
+
+### Usage
+
+If your have created a database containing isolines, using one of the methods above (or any other way, you actually just need a table with isolines that have an elevation column).
+You just need to edit the config.json file and add your database credentials and then call the export script.
+```
+export.js PARAMETERS
+```
+Use parameters in this sequence:
+
+Bounding Box in Lng/Lat
+- xmin   : FLOAT
+- ymin   : FLOAT
+- xmax   : FLOAT
+- ymax   : FLOAT
+SRID of the Bounding Box
+- srid   : INT(4)
+Maximum size in Pixels of the output svg/png
+- size   : INT
+Number of Isolines to output (will be reduced if less isolines are available), should ideally be dividable by layers
+- lines  : INT
+Number of layers (individual files) to generate
+- layers : INT
+Name of folder to export to
+- folder : STRING or FALSE
+Smoothing function for the isolines (one of d3.curveBasis, d3.curveLinear, d3.curveCardinal, d3.curveMonotoneX, d3.curveCatmullRom)
+- curve  : STRING
+
+### Output
+
+The script above will generate a geojson and topojson holding the data for all the isolines, in addition it renders a set of SVGs (depending on the number of layers defined in the parameters).
+
+![Output animation](https://raw.githubusercontent.com/sebastian-meier/dem-playground/master/readme_thumbnails/dem_test.gif)
 
 ## References & Approach
 Projects like openDEM provide SRTM data already in shapefile format, those data sets sadly only provide LINESTRINGS, which, even though i put in hours of work, i was not able to stitch back together into proper polygons. Even though the resolution would be a lot better.
