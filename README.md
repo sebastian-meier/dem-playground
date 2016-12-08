@@ -49,7 +49,7 @@ Loading all shapefiles into a postgres server
 for file in */ ; do ogr2ogr -append -f "PostgreSQL" PG:"dbname=DATABASE_NAME" -nln TABLENAME ./${file%/}/${file%/}.shp; done
 ```
 
-The following step is not mandatory, but i like having Polygons if possible instead of LineStrings. The script also uses Polygons for calculating areas, in order to remove small areas (small is determined relative to zoom level)
+The following step is not mandatory, but i like having Polygons if possible instead of LineStrings. The visualization script also uses Polygons for calculating areas, in order to remove small areas (small is determined relative to zoom level)
 
 Modify the SQL structure
 ```
@@ -57,7 +57,7 @@ Modify the SQL structure
 ALTER TABLE dem ALTER COLUMN wkb_geometry TYPE geometry(Geometry,4326)
 
 #Where possible convert linestrings to polygons
-UPDATE dem_shp SET wkb_geometry = ST_MakePolygon(wkb_geometry) WHERE ST_StartPoint(wkb_geometry) = ST_EndPoint(wkb_geometry)
+UPDATE dem SET wkb_geometry = ST_MakePolygon(wkb_geometry) WHERE ST_StartPoint(wkb_geometry) = ST_EndPoint(wkb_geometry)
 
 #To speed things up we add another index for the elevation
 CREATE INDEX dem_elevation_idx ON dem USING btree (elevation);
