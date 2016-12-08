@@ -10,6 +10,7 @@ Before choosing a path to go, you should decide which type of DEM/SRTM data you 
 ### Downloading the data
 
 The [OpenDEM](http://www.opendem.info/) project is collecting and providing elevation data under an open license. (Most of the data is provided by the USGS.)
+
 You can use the web-interface to [download](http://www.opendem.info/download_contours.html) the DEM data as shapefiles. 
 
 Instead of downloading a bunch of zip files manually, you can also use this command to download a list of files stored in a text file
@@ -49,6 +50,7 @@ for file in */ ; do ogr2ogr -append -f "PostgreSQL" PG:"dbname=DATABASE_NAME" -n
 ```
 
 The following step is not mandatory, but i like having Polygons if possible instead of LineStrings. The script also uses Polygons for calculating areas, in order to remove small areas (small is determined relative to zoom level)
+
 Modify the SQL structure
 ```
 #Change the geom column from LineString to Geometry to accept Polygons and LineStrings
@@ -62,15 +64,17 @@ CREATE INDEX dem_elevation_idx ON dem USING btree (elevation);
 ```
 
 ![Problem with OpenDEM LineStrings](https://raw.githubusercontent.com/sebastian-meier/dem-playground/master/readme_thumbnails/linestring_problem.jpg)
-TODO:Remove offset at the edges of the tiles 
 
+TODO:Remove offset at the edges of the tiles 
 
 ## Polygons from GeoTIFFs (from CGIAR)
 
 ### Downloading the data
 
 The CGIAR-CIS (USGS/NASA) project is collecting and providing elevation data under a non-commercial, only free-redistribute license.
+
 You can use the web-interface to [download](http://srtm.csi.cgiar.org) the DEM data as GeoTiffs.
+
 (Jarvis A., H.I. Reuter, A.  Nelson, E. Guevara, 2008, Hole-filled  seamless SRTM data V4, International  Centre for Tropical  Agriculture (CIAT), available  from http://srtm.csi.cgiar.org)
 
 Instead of downloading a bunch of zip files manually, you can use this command to download a list of files stored in a text file
@@ -125,6 +129,7 @@ node split_geotiff.js /Users/sebastianmeier/Downloads/DEM_tif/srtm_cgiar_stats.g
 ```
 
 If you did not import the data into PostgreSQL directly, now importing the shapefile into Postgres.
+
 If you have multiple files use the script from the LineString part to import multiple shp files at once.
 ```
 ogr2ogr -f "PostgreSQL" PG:"dbname=DATABASE_NAME" -nln TABLENAME srtm_cgiar.shp
@@ -140,6 +145,7 @@ CREATE INDEX dem_elevation ON dem (elevation)
 ### Usage
 
 If your have created a database containing isolines, using one of the methods above (or any other way, you actually just need a table with isolines that have an elevation column).
+
 You just need to edit the config.json file and add your database credentials and then call the export script.
 ```
 export.js PARAMETERS
