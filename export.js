@@ -25,6 +25,7 @@ var config = {
 	size   : 2000,
 	lines  : 16, //Number of iso lines to generate
 	layers : 4,  //Number of segments to generate (lines should ideally be dividable by layers)
+	simplify : 0.000005,
 	folder : false,
 	curve  : false
 }, config_key = {};
@@ -211,16 +212,16 @@ for(var i = 0; i<levels.length; i++){
 }
 
 //Save GeoJSON
-fs.writeFileSync(export_path+"/"+export_directory+'/export.geojson', JSON.stringify(geojson));
+fs.writeFileSync(export_path+"/"+export_directory+'/export.geojson', JSON.stringify(geojson)); //, null, 4
 
 /* ----------------------------- */
 
 //simplify data through topojson
 
-var topology = topojson.topology(geojson.features);
+var topology = topojson.topology({contours: geojson});
 
 topojson_simplify.presimplify(topology);
-//topojson_simplify.simplify(topology,0.1);
+topojson_simplify.simplify(topology,config.simplify);
 
 //Save TopoJSON
 fs.writeFileSync(export_path+"/"+export_directory+'/export.topojson', JSON.stringify(topology));
@@ -268,8 +269,10 @@ var width, height;
 
 	projection.translate([width/2, height/2]);
 
-var features = [],
-	splitFeatures = [];
+var features = {
+		type:"FeatureCollection",
+		features:[]
+	};
 
 //Clean the data a bit (removing small bits and holes)
 
@@ -278,13 +281,13 @@ var minArea = 2000000/(scale/20000);
 function addFeature(feature){
 	var a = [];
 	if(feature.geometry.type == "LineString"){
-		a.push(feature);
+		a.push(feature.geometry);
 	}else if(feature.geometry.type == "MultiLineString"){
-		a.push(feature);
+		a.push(feature.geometry);
 	}else if(feature.geometry.type == "Polygon"){
 		var area = turf.area(feature);
 		if(area > (minArea)){
-			a.push(feature);			
+			a.push(feature.geometry);			
 		}
 	}else if(feature.geometry.type == "MultiPolygon"){
 		for(var j = 0; j<feature.geometry.coordinates.length; j++){
@@ -309,7 +312,7 @@ function addFeature(feature){
 				}
 
 				newFeature.geometry.coordinates = newCoordinates;
-				a.push(newFeature);
+				a.push(newFeature.geometry);
 			}
 		}
 	}else{
@@ -320,21 +323,35 @@ function addFeature(feature){
 
 //We don't want a lot of small bits and pieces, therefore we remove small polygons and small holes inside polygons
 //The area limit for 
-for(var i = 0; i<topology.objects.length; i++){
-	features.push(topojson_client.feature(topology, topology.objects[i]));
+var geoTopo = topojson_client.feature(topology, topology.objects.contours).features;
+for(var i = 0; i<geoTopo.length; i++){
+	var feature = {
+		type:"Feature",
+		properties:{
+			elevation:geoTopo[i].properties.elevation
+		},
+		geometry:{
+			type:"GeometryCollection",
+			geometries:[]
+		}
+	};
 
-	var feature = [];
-
-	if(features[features.length-1].type == "FeatureCollection"){
-		for(var j = 0; j<features[features.length-1].features.length; j++){
-			feature = feature.concat(addFeature(features[features.length-1].features[j]));
+	if(geoTopo[i].type == "FeatureCollection"){
+		for(var j = 0; j<geoTopo[i].features.length; j++){
+			feature.geometry.geometries = feature.geometry.geometries.concat(addFeature(geoTopo[i].features[j]));
+		}
+	}else if(geoTopo[i].geometry.type == "GeometryCollection"){
+		for(var j = 0; j<geoTopo[i].geometry.geometries.length; j++){
+			feature.geometry.geometries = feature.geometry.geometries.concat(addFeature({type:"Feature", geometry:geoTopo[i].geometry.geometries[j]}));
 		}
 	}else{
-		feature = feature.concat(addFeature(features[features.length-1]));
+		feature.geometry.geometries = feature.geometry.geometries.concat(addFeature(geoTopo[i]));
 	}
-	
-	splitFeatures.push(feature);
+
+	features.features.push(feature);
 }
+
+fs.writeFileSync(export_path+"/"+export_directory+'/export_filter.geojson', JSON.stringify(features));
 
 //Smoothing pathes
 
@@ -348,13 +365,13 @@ if(config.curve){
 
 var smoothPath = function(pstr){
 	var r = "";
-	pstr.forEach(function(d){
+	pstr.geometry.geometries.forEach(function(d){
 		var p = path(d);
 		if(p == undefined){
 			//do nothing
 		}else{
 			var str = "";
-			if(d.geometry.type == "Polygon" || d.geometry.type == "MultiPolygon"){
+			if(d.type == "Polygon" || d.type == "MultiPolygon"){
 				var sps = p.substr(1).split("ZM");
 			}else{
 				var sps = p.substr(1).split("M");
@@ -362,7 +379,7 @@ var smoothPath = function(pstr){
 			for(var s = 0; s<sps.length; s++){
 				sp = sps[s].replace("Z", "").split("L").map(function(d){ return d.split(",") });
 				str += interpolate(sp);
-				if(d.geometry.type == "Polygon" || d.geometry.type == "MultiPolygon"){
+				if(d.type == "Polygon" || d.type == "MultiPolygon"){
 					str += "Z";
 				}
 			}
@@ -386,7 +403,7 @@ jsdom.env({
     done:function(errors, window){
     	window.d3 = d3.select(window.document);
 
-		for(var f = 0; f<splitFeatures.length; f+=steps){
+		for(var f = 0; f<features.features.length; f+=steps){
 
 			var svg = window.d3.select("body").append("div").attr('id','id_'+f).append('svg')
 				.attr("version","1.1")
@@ -401,9 +418,9 @@ jsdom.env({
 
 			var group = svg.append('g');
 
-			for(var ff = (f+1); ff<f+steps && ff<splitFeatures.length; ff++){
+			for(var ff = (f+1); ff<f+steps+1 && ff<features.features.length; ff++){
 				group.append('g').append("path")
-					.datum(splitFeatures[ff])
+					.datum(features.features[ff])
 					.style('stroke','black')
 					.style('fill','rgba(0,0,0,0)')
 					.attr("d", function(d){
@@ -420,7 +437,7 @@ jsdom.env({
 			if(p1[1]>p2[1]){ymax=p1[1];ymin=p2[1];}else{ymax=p2[1];ymin=p1[1];}
 
 			svg.append('g').append("path")
-				.datum(splitFeatures[f])
+				.datum(features.features[f])
 				.style('stroke','red')
 				.style('fill','rgba(0,0,0,0)')
 				.attr("d", function(d){
@@ -442,16 +459,24 @@ jsdom.env({
 
 		var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><style>img{position:absolute;left:100px;top:'+(20+file*40)+'px;transition:all 1s ease;transform:scaleY(0.5) skew(-20deg, 20deg);}';
 
-		for(var f = 0; f<splitFeatures.length; f+=steps){
-			html += '.container:hover img.layer_'+(splitFeatures.length/steps - (f/steps) - 1)+'{top:'+(20+40*(f/steps))+'px;}';
+		for(var f = 0; f<features.features.length; f+=steps){
+			html += '.container:hover img.layer_'+(features.features.length/steps - (f/steps) - 1)+'{top:'+(20+40*(f/steps))+'px;}';
 		}
 
 		html += '</style></head><body><div class="container">';
 
-		for(var f = 0; f<splitFeatures.length; f+=steps){
-			html += '<img class="layer_'+(splitFeatures.length/steps - (f/steps) - 1)+'" src="export_svg_'+(splitFeatures.length/steps - (f/steps) - 1)+'.svg" style="width:500px; height:auto;" />';
+		for(var f = 0; f<features.features.length; f+=steps){
+			html += '<img class="layer_'+(features.features.length/steps - (f/steps) - 1)+'" src="export_svg_'+(features.features.length/steps - (f/steps) - 1)+'.svg" style="width:500px; height:auto;" />';
 		}
 
 		fs.writeFileSync(export_path+'/'+export_directory+'/export.html', html+'</div></body></html>');
+
+		var topology = topojson.topology({contours: features});
+		topojson_simplify.presimplify(topology);
+		topojson_simplify.simplify(topology, config.simplify);
+
+		//Save TopoJSON
+		fs.writeFileSync(export_path+"/"+export_directory+'/export_filter.topojson', JSON.stringify(topology));
+
 	}
 });

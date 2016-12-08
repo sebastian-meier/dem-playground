@@ -173,6 +173,9 @@ Number of Isolines to output (will be reduced if less isolines are available), s
 Number of layers (individual files) to generate
 - layers : INT
 
+TopoJson Simplification (default : 0.000001)
+- simplify : float
+
 Name of folder to export to
 - folder : STRING or FALSE
 
