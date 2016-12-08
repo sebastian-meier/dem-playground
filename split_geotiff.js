@@ -59,7 +59,7 @@ function init(){
 
 			step = low_bound;
 
-			console.log("range:",low_bound,high_bound,step);
+			console.log("range:",low_bound,high_bound,interval);
 
 			initProcessBounds();
 		}
