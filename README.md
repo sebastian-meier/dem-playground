@@ -129,10 +129,8 @@ node split_geotiff.js /Users/sebastianmeier/Downloads/DEM_tif/srtm_cgiar_stats.g
 ```
 
 If you did not import the data into PostgreSQL directly, now importing the shapefile into Postgres.
-
-If you have multiple files use the script from the LineString part to import multiple shp files at once.
 ```
-ogr2ogr -f "PostgreSQL" PG:"dbname=DATABASE_NAME" -nln TABLENAME srtm_cgiar.shp
+for file in *.shp; do ogr2ogr -a_srs WGS84  -append -f "PostgreSQL" PG:"dbname=DATABASE_NAME host=localhost" -nln TABLE_NAME ${file}; done
 ```
 
 To speed things up, add an index on the elevation:
