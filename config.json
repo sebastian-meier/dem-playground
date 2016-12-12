@@ -6,9 +6,9 @@
 		"port":5432,
 		"host":"localhost",
 		"ssl":false,
-		"table":"dem_geotiff",
+		"table":"dem_shp",
 		"table_type":"linestring",
 		"geom_column":"wkb_geometry",
-		"elevation_column":"elev"
+		"elevation_column":"elevation"
 	}
 }

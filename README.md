@@ -1,9 +1,36 @@
 # dem-playground
 ### Downloading, Processing and Visualization of Digital Elevation Model (DEM) Data
 
+Overview
+- [GDAL only process](#gdal-only-process)
+- [LineStrings from OpenDEM](#linestrings-from-opendem)
+- [Polygons from GeoTIFFs (from CGIAR)](#polygons-from-geotiffs-from-cgiar)
+- [Visualization](#visualization)
+- [ToDos](#todos)
+
 Before choosing a path to go, you should decide which type of DEM/SRTM data you need. Digital Elevation Models can be provided in two flavours, Polygons and LineStrings. You might be wondering why you need to decide, but its simply a problem of available data. [OpenDEM](http://www.opendem.info/) offers LineStrings in a very good resolution, some of those LineStrings can easily be converted into Polygons, but I ran into a lot of problems when trying to merge LineStrings across tile edges. If you want Polygons you should rather use the USGS/NASA DEM data from the [CGIAR](http://srtm.csi.cgiar.org/) project , which is provided in form of GeoTIFFs, which can easily be polygonized. (If somebody knows an easy way of polygonizing the LineStrings from OpenDEM, please let me know, i have already spend days on figuring this out.)
 
 ![OpenDEM & CGIAR](https://raw.githubusercontent.com/sebastian-meier/dem-playground/master/readme_thumbnails/sources.jpg)
+
+I favour Postgres as a middleman, for faster and easier queries (but that is just my opinion). For those who don't want to rely on Postgres i will start with a process that only relies on GDAL.
+
+## GDAL only process
+
+Use one of the processes described below to download either the OpenDEM shapefiles or the CGIAR geotiffs.
+
+If your area contains multiple files i recommend creating a vrt for combined processing, then extracting the area we need and processing it:
+```
+#GeoTiffs
+gdalbuildvrt srtm_cgiar.vrt 1.tif 2.tif ... n.tif
+
+
+#Shapefiles
+gdalbuildvrt srtm_cgiar.vrt 1.shp 2.shp ... n.shp
+
+```
+
+
+
 
 ## LineStrings from OpenDEM
 
@@ -140,7 +167,7 @@ CREATE INDEX dem_elevation ON dem (elevation)
 
 ## Visualization 
 
-### Usage
+### Usage of export.js
 
 If your have created a database containing isolines, using one of the methods above (or any other way, you actually just need a table with isolines that have an elevation column).
 
@@ -180,12 +207,70 @@ Name of folder to export to
 Smoothing function for the isolines (one of d3.curveBasis, d3.curveLinear, d3.curveCardinal, d3.curveMonotoneX, d3.curveCatmullRom)
 - curve  : STRING
 
-
 ### Output
 
 The script above will generate a geojson and topojson holding the data for all the isolines, in addition it renders a set of SVGs (depending on the number of layers defined in the parameters).
 
 ![Output animation](https://raw.githubusercontent.com/sebastian-meier/dem-playground/master/readme_thumbnails/dem_test.gif)
+
+### Contour Map with CartoCSS (e.g. TileMill or Mapbox Studio Classic)
+
+![MapBox using CartoCSS](https://raw.githubusercontent.com/sebastian-meier/dem-playground/master/readme_thumbnails/mapbox.gif)
+
+The GeoJSONs generated with the export script can also be used to create a slippy map with CartoCSS (You could also use the shapefiles directly or the GeoJSONs generated through the process in section #1).
+
+```
+Map {
+  background-color: #fff;
+}
+
+#export{
+  line-width: 1;
+  line-color: rgba(0,0,0,0.1);
+  [elevation > 25]{  line-color: rgba(0,0,0,0.2);}
+  [elevation > 50]{  line-color: rgba(0,0,0,0.4);}
+  [elevation > 75]{  line-color: rgba(0,0,0,0.6);}
+  [elevation > 100]{ line-color: rgba(0,0,0,0.8);}
+  [elevation > 125]{ line-color: rgba(0,0,0,1.0);}
+}
+
+#export {
+  text-fill: rgba(0,0,0,0.1);
+  [elevation > 25]{  text-fill: rgba(0,0,0,0.2);}
+  [elevation > 50]{  text-fill: rgba(0,0,0,0.5);}
+  [elevation > 75]{  text-fill: rgba(0,0,0,0.6);}
+  [elevation > 100]{ text-fill: rgba(0,0,0,0.8);}
+  [elevation > 125]{ text-fill: rgba(0,0,0,1.0);}
+
+  text-name:[elevation];
+  text-face-name:'Open Sans Regular';
+  
+  text-halo-fill:#fff;
+  text-halo-opacity:1;
+  text-halo-radius:2;
+  
+  text-placement:line;
+  text-placement-type:dummy;
+  
+  text-avoid-edges:true;
+  
+  text-repeat-distance:30;
+  text-margin:30;
+  
+  text-smooth:0.5;
+  text-simplify:1;
+  
+  text-max-char-angle-delta:22.5;
+  
+  //text-simplify-algorithm:visvalingam-whyatt;
+}
+```
+
+### Laser-cutting elevation models
+
+Using the SVGs generated through export.js, you can simply create files to be send to a Laser-Cutter. Simply open the SVGs in your favourite Vector editing software, change the size to the real world size you need and export as (Autocad) DXF files.
+
+![Laser-cutter test](https://raw.githubusercontent.com/sebastian-meier/dem-playground/master/readme_thumbnails/lasercutter.jpg)
 
 ## ToDos
 
