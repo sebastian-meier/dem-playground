@@ -21,15 +21,33 @@ Use one of the processes described below to download either the OpenDEM shapefil
 If your area contains multiple files i recommend creating a vrt for combined processing, then extracting the area we need and processing it:
 ```
 #GeoTiffs
+
+#combine multiple geotiffs into vrt
 gdalbuildvrt srtm_cgiar.vrt 1.tif 2.tif ... n.tif
 
+#clip the area you want
+gdalwarp -te X_MIN Y_MIN X_MAX Y_MAX srtm_cgiar.vrt srtm_clip.tif
+
+#Polygonize
+gdal_polygonize.py srtm_clip.vrt -f "ESRI Shapefile" srtm_poly.shp
+gdal_polygonize.py srtm_clip.vrt -f "GeoJSON" srtm_poly.geojson
 
 #Shapefiles
+
+#combine multiple shapefiles into vrt
 gdalbuildvrt srtm_cgiar.vrt 1.shp 2.shp ... n.shp
 
+#clip the area you want
+ogr2ogr -f "ESRI Shapefile" srtm_clip.shp srtm_cgiar.vrt -clipsrc X_MIN Y_MIN X_MAX Y_MAX
+
+#Convert to GeoJSON
+ogr2ogr -f GeoJSON srtm_clip.geojson srtm_clip.shp
+#If you want the GeoJSON to be in a different projection than your shapefile
+ogr2ogr -f GeoJSON -t_srs PROJECTION srtm_clip.geojson srtm_clip.shp
 ```
 
-
+If you don't want to create intermediate files, use "|" to pipe the output to the next command.
+(Good piping [explanation](https://medium.com/@mbostock/command-line-cartography-part-2-c3a82c5c0f3#.1cerm4nfw) by Mike Bostock.)
 
 
 ## LineStrings from OpenDEM
